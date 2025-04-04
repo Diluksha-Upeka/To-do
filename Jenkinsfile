@@ -58,7 +58,8 @@ pipeline {
                                 -e AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID% ^
                                 -e AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY% ^
                                 -e AWS_REGION=%AWS_REGION% ^
-                                hashicorp/terraform:1.5.7 init -reconfigure
+                                --user root ^
+                                hashicorp/terraform:1.5.7 init -reconfigure -lock=false
                             if errorlevel 1 exit /b 1
                             
                             docker run --rm ^
@@ -67,7 +68,8 @@ pipeline {
                                 -e AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID% ^
                                 -e AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY% ^
                                 -e AWS_REGION=%AWS_REGION% ^
-                                hashicorp/terraform:1.5.7 plan -out=tfplan
+                                --user root ^
+                                hashicorp/terraform:1.5.7 plan -out=tfplan -lock=false
                             if errorlevel 1 exit /b 1
                             
                             docker run --rm ^
@@ -76,7 +78,8 @@ pipeline {
                                 -e AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID% ^
                                 -e AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY% ^
                                 -e AWS_REGION=%AWS_REGION% ^
-                                hashicorp/terraform:1.5.7 apply tfplan
+                                --user root ^
+                                hashicorp/terraform:1.5.7 apply tfplan -lock=false
                             if errorlevel 1 exit /b 1
                         """
                     }
