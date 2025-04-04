@@ -55,7 +55,7 @@ pipeline {
                             if not exist "%WORKSPACE%\\terraform.jenkins" mkdir "%WORKSPACE%\\terraform.jenkins"
                         """
                         
-                        // Initialize Terraform
+                        // Initialize Terraform with state migration
                         bat """
                             docker run --rm ^
                                 -v "%WORKSPACE%\\terraform.jenkins:/workspace" ^
@@ -64,7 +64,7 @@ pipeline {
                                 -e AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY% ^
                                 -e AWS_REGION=%AWS_REGION% ^
                                 --user root ^
-                                hashicorp/terraform:1.5.7 init -lock=false
+                                hashicorp/terraform:1.5.7 init -migrate-state -lock=false
                             if errorlevel 1 exit /b 1
                             
                             docker run --rm ^
