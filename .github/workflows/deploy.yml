@@ -1,0 +1,46 @@
+name: Deploy To-Do List App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # Install dependencies for both frontend and auth service
+      - name: Install Dependencies (Frontend)
+        run: |
+          cd frontend
+          npm install
+
+      - name: Install Dependencies (Auth Service)
+        run: |
+          cd auth-service
+          npm install
+
+      # Start the Authentication Service (Backend)
+      - name: Start Auth Service
+        run: |
+          cd auth-service
+          nohup nodemon index.js &  # Run in background
+
+      # Start the Frontend Service
+      - name: Start Frontend
+        run: |
+          cd frontend
+          nohup npm run dev &  # Run in background
+
+      # Deploy (Optional: Add your deployment steps here)
+      - name: Deploy Application
+        run: echo "Add deployment commands here"

@@ -1,0 +1,28 @@
+# Credentials and secrets
+credentials.env
+.env
+*.pem
+*.key
+
+# Jenkins
+jenkins_home/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+
+# Ansible
+*.retry
+inventory/aws_ec2.ini
+
+# Docker
+.docker/
+
+# Logs
+*.log
+
+# OS specific
+.DS_Store
+Thumbs.db 

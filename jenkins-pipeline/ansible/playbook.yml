@@ -1,0 +1,92 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
+
+    - name: Install Docker Compose
+      pip:
+        name: docker-compose
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Create Docker Compose file
+      copy:
+        dest: /home/ubuntu/docker-compose.yml
+        content: |
+          version: '3'
+          services:
+            frontend:
+              image: your-dockerhub-username/your-frontend-image
+              ports:
+                - "80:80"
+              depends_on:
+                - backend
+
+            backend:
+              image: your-dockerhub-username/your-backend-image
+              ports:
+                - "5000:5000"
+              depends_on:
+                - mongodb
+              environment:
+                - MONGODB_URI=mongodb://mongodb:27017/mydb
+
+            mongodb:
+              image: your-dockerhub-username/your-mongo-image
+              ports:
+                - "27017:27017"
+              volumes:
+                - mongodb_data:/data/db
+
+          volumes:
+            mongodb_data:
+        mode: '0644'
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Start Docker Compose
+      become_user: ubuntu
+      shell: docker-compose up -d
+      args:
+        chdir: /home/ubuntu 

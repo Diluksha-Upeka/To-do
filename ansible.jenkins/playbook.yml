@@ -1,0 +1,82 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
+
+    - name: Install Docker Compose
+      pip:
+        name: docker-compose
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Create Docker Compose file
+      copy:
+        dest: /home/ubuntu/docker-compose.yml
+        content: |
+          version: '3'
+          services:
+            frontend:
+              image: dilukshaup/todo-app-frontend:latest
+              ports:
+                - "80:80"
+              depends_on:
+                - backend
+
+            backend:
+              image: dilukshaup/todo-app:${DOCKER_TAG}
+              ports:
+                - "5000:5000"
+              environment:
+                - MONGODB_ATLAS_URI=${MONGODB_ATLAS_URI}
+                - JWT_SECRET=${JWT_SECRET}
+                - NODE_ENV=production
+        mode: '0644'
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Start Docker Compose
+      become_user: ubuntu
+      shell: docker-compose up -d
+      args:
+        chdir: /home/ubuntu 

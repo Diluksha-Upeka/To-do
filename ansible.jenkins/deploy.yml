@@ -1,0 +1,48 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Create Docker Compose file
+      copy:
+        dest: /home/ubuntu/docker-compose.yml
+        content: |
+          version: '3'
+          services:
+            frontend:
+              image: {{ lookup('env', 'DOCKER_IMAGE_FRONTEND') }}
+              ports:
+                - "80:80"
+              depends_on:
+                - auth-service
+              environment:
+                - APP_ENV={{ lookup('env', 'APP_ENV') }}
+                - MONGODB_ATLAS_URI={{ lookup('env', 'MONGODB_ATLAS_URI') }}
+                - JWT_SECRET={{ lookup('env', 'JWT_SECRET') }}
+
+            auth-service:
+              image: {{ lookup('env', 'DOCKER_IMAGE_AUTH_SERVICE') }}
+              ports:
+                - "5000:5000"
+              environment:
+                - APP_ENV={{ lookup('env', 'APP_ENV') }}
+                - MONGODB_ATLAS_URI={{ lookup('env', 'MONGODB_ATLAS_URI') }}
+                - JWT_SECRET={{ lookup('env', 'JWT_SECRET') }}
+
+            mongodb:
+              image: {{ lookup('env', 'DOCKER_IMAGE_MONGODB') }}
+              ports:
+                - "27017:27017"
+              volumes:
+                - mongodb_data:/data/db
+
+          volumes:
+            mongodb_data:
+        mode: '0644'
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Start Docker Compose
+      become_user: ubuntu
+      shell: docker-compose up -d
+      args:
+        chdir: /home/ubuntu 
