@@ -52,13 +52,13 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'AWS_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                         // Create workspace directory if it doesn't exist
                         bat """
-                            if not exist "%WORKSPACE_UNIX%/terraform.jenkins" mkdir "%WORKSPACE_UNIX%/terraform.jenkins"
+                            if not exist "%WORKSPACE%\\terraform.jenkins" mkdir "%WORKSPACE%\\terraform.jenkins"
                         """
                         
                         // Initialize Terraform
                         bat """
                             docker run --rm ^
-                                -v "%WORKSPACE_UNIX%/terraform.jenkins:/workspace" ^
+                                -v "%WORKSPACE%\\terraform.jenkins:/workspace" ^
                                 -w /workspace ^
                                 -e AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID% ^
                                 -e AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY% ^
@@ -68,7 +68,7 @@ pipeline {
                             if errorlevel 1 exit /b 1
                             
                             docker run --rm ^
-                                -v "%WORKSPACE_UNIX%/terraform.jenkins:/workspace" ^
+                                -v "%WORKSPACE%\\terraform.jenkins:/workspace" ^
                                 -w /workspace ^
                                 -e AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID% ^
                                 -e AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY% ^
@@ -78,7 +78,7 @@ pipeline {
                             if errorlevel 1 exit /b 1
                             
                             docker run --rm ^
-                                -v "%WORKSPACE_UNIX%/terraform.jenkins:/workspace" ^
+                                -v "%WORKSPACE%\\terraform.jenkins:/workspace" ^
                                 -w /workspace ^
                                 -e AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID% ^
                                 -e AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY% ^
@@ -100,7 +100,7 @@ pipeline {
                         // Get EC2 instance public IP
                         def tfOutput = bat(script: """
                             docker run --rm ^
-                                -v "%WORKSPACE_UNIX%/terraform.jenkins:/workspace" ^
+                                -v "%WORKSPACE%\\terraform.jenkins:/workspace" ^
                                 -w /workspace ^
                                 hashicorp/terraform:1.5.7 output -raw instance_public_ip
                         """, returnStdout: true).trim()
@@ -128,7 +128,7 @@ pipeline {
                             set "MONGODB_URI_ESCAPED=!MONGODB_URI!"
                             set "EC2_PUBLIC_IP=!tfOutput!"
                             docker run --rm ^
-                                -v "%WORKSPACE_UNIX%/ansible.jenkins:/ansible" ^
+                                -v "%WORKSPACE%\\ansible.jenkins:/ansible" ^
                                 -w /ansible ^
                                 -e "MONGODB_ATLAS_URI=!MONGODB_URI_ESCAPED!" ^
                                 -e "JWT_SECRET=!JWT_SECRET!" ^
@@ -170,7 +170,7 @@ pipeline {
                         // This stage updates the EC2 instance with the new Docker image
                         bat """
                             docker run --rm ^
-                                -v "%WORKSPACE_UNIX%/terraform.jenkins:/workspace" ^
+                                -v "%WORKSPACE%\\terraform.jenkins:/workspace" ^
                                 -w /workspace ^
                                 -e AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID% ^
                                 -e AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY% ^
