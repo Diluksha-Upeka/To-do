@@ -58,7 +58,7 @@ pipeline {
                                 -e AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID% ^
                                 -e AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY% ^
                                 -e AWS_REGION=%AWS_REGION% ^
-                                hashicorp/terraform:1.5.7 init
+                                hashicorp/terraform:1.5.7 init -reconfigure
                             if errorlevel 1 exit /b 1
                             
                             docker run --rm ^
