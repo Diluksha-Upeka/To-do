@@ -7,8 +7,6 @@ pipeline {
         DOCKER_TAG = "${BUILD_NUMBER}"
         APP_ENV = 'production'
         WORKSPACE_UNIX = "${WORKSPACE}".replace('\\', '/').replace('C:', '/c')
-        TF_STATE_BUCKET = 'todo-app-terraform-state'
-        TF_STATE_KEY = 'terraform.tfstate'
     }
     
     stages {
@@ -52,7 +50,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'AWS_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                        // Initialize Terraform with S3 backend
+                        // Initialize Terraform
                         bat """
                             docker run --rm ^
                                 -v "%WORKSPACE_UNIX%/terraform.jenkins:/workspace" ^
@@ -60,12 +58,7 @@ pipeline {
                                 -e AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID% ^
                                 -e AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY% ^
                                 -e AWS_REGION=%AWS_REGION% ^
-                                -e TF_STATE_BUCKET=%TF_STATE_BUCKET% ^
-                                -e TF_STATE_KEY=%TF_STATE_KEY% ^
-                                hashicorp/terraform:1.5.7 init ^
-                                -backend-config="bucket=%TF_STATE_BUCKET%" ^
-                                -backend-config="key=%TF_STATE_KEY%" ^
-                                -backend-config="region=%AWS_REGION%"
+                                hashicorp/terraform:1.5.7 init
                             if errorlevel 1 exit /b 1
                             
                             docker run --rm ^
@@ -122,7 +115,7 @@ pipeline {
                             )
                         """
                         
-                        // Run Ansible playbook with properly escaped MongoDB URI
+                        // Run Ansible playbook
                         bat """
                             set "MONGODB_URI_ESCAPED=!MONGODB_URI!"
                             set "EC2_PUBLIC_IP=!tfOutput!"
@@ -167,7 +160,6 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'AWS_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                         // This stage updates the EC2 instance with the new Docker image
-                        // It uses Terraform to update the user_data script with the new image tag
                         bat """
                             docker run --rm ^
                                 -v "%WORKSPACE_UNIX%/terraform.jenkins:/workspace" ^

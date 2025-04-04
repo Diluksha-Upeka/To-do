@@ -3,10 +3,8 @@ provider "aws" {
 }
 
 terraform {
-  backend "s3" {
-    bucket = "todo-app-terraform-state"
-    key    = "terraform.tfstate"
-    region = "eu-north-1"
+  backend "local" {
+    path = "terraform.tfstate"
   }
 }
 
@@ -77,13 +75,6 @@ resource "aws_security_group" "app" {
   ingress {
     from_port   = 5000
     to_port     = 5000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 27017
-    to_port     = 27017
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
