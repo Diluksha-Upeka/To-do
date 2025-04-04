@@ -50,7 +50,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'AWS_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                        // Initialize Terraform
+                        // Initialize Terraform with migration
                         bat """
                             docker run --rm ^
                                 -v "%WORKSPACE_UNIX%/terraform.jenkins:/workspace" ^
@@ -59,7 +59,7 @@ pipeline {
                                 -e AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY% ^
                                 -e AWS_REGION=%AWS_REGION% ^
                                 --user root ^
-                                hashicorp/terraform:1.5.7 init -reconfigure -lock=false
+                                hashicorp/terraform:1.5.7 init -migrate-state -force-copy -lock=false
                             if errorlevel 1 exit /b 1
                             
                             docker run --rm ^
